@@ -1,12 +1,12 @@
 package com.zbrickx.crudrest01.rest;
 
 import com.zbrickx.crudrest01.Student;
+import com.zbrickx.crudrest01.response.StudentErrorResponse;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +33,18 @@ public class StudentRestController {
     }
 
     @GetMapping("/students/{studentid}")
-    public Student getStudent(@PathVariable int studentid){
-
+    public Student getStudent(@PathVariable int studentid) {
+        if(studentid < 0 || studentid >= students.size())
+            throw new StudentNotFoundException("student id not found_ "+studentid);
         return students.get(studentid);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<StudentErrorResponse> handleException(StudentNotFoundException exe){
+        StudentErrorResponse ser = new StudentErrorResponse();
+        ser.setMessage(exe.getMessage());
+        ser.setStatus(HttpStatus.NOT_FOUND.value());
+        ser.setTimestamp(System.currentTimeMillis());
+        return new ResponseEntity<>(ser,HttpStatus.NOT_FOUND);
     }
 }
